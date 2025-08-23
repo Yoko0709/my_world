@@ -53,6 +53,7 @@
     "sharp": "^0.34.2"
   },
   "devDependencies": {
+    "@astrojs/vercel": "^8.2.6",
     "@axe-core/playwright": "^4.10.2",
     "@biomejs/biome": "^2.0.6",
     "@playwright/test": "^1.53.2",
