@@ -5,7 +5,7 @@ import os
 app = Flask(__name__)
 
 if not os.path.exists("index"):
-    docs = load_docs("backend/ai-agent/docs")
+    docs = load_docs(r"E:\my_world\backend\ai-agent\docs")
     vectorstore = create_index(docs)
 else:
     vectorstore = load_index()

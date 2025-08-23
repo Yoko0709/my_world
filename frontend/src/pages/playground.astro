@@ -1,0 +1,79 @@
+---
+import { getCollection } from "astro:content";
+import dayjs from "dayjs";
+import PostLink from "src/components/PostLink.astro";
+
+import Center from "../components/Center.astro";
+import PageHeader from "../components/PageHeader.astro";
+import { smartquotes } from "../helpers/helpers";
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+
+const posts = await getCollection("posts");
+posts.sort((a, b) => {
+  return dayjs(b.data.datePublished).isBefore(dayjs(a.data.datePublished))
+    ? -1
+    : 1;
+});
+
+// 取 papers
+const papers = await getCollection("papers");
+papers.sort((a, b) =>
+  dayjs(b.data.datePublished).isBefore(dayjs(a.data.datePublished)) ? -1 : 1
+);
+
+// 取 projects
+const projects = await getCollection("projects");
+projects.sort((a, b) =>
+  dayjs(b.data.datePublished).isBefore(dayjs(a.data.datePublished)) ? -1 : 1
+);
+
+const title = "Ren Zhiyan's Playground";
+const description = "A place for my papers and projects.";
+---
+
+<BaseLayout title={title} description={description} includeFooter padBottom>
+  <PageHeader title={title} description={description} />
+  <Center>
+    <section>
+      <h2>Papers</h2>
+      {
+        papers.map((paper) => (
+          <PostLink
+            url={`papers/${paper.id}`}
+            title={smartquotes(paper.data.title)}
+            description={smartquotes(paper.data.description)}
+            datePublished={paper.data.datePublished}
+            features={paper.data.features}
+          />
+        ))
+      }
+    </section>
+    <section>
+      <h2>Projects</h2>
+      {
+        projects.map((project) => (
+          <PostLink
+            url={project.data.url}
+            title={smartquotes(project.data.title)}
+            description={smartquotes(project.data.description)}
+            datePublished={project.data.datePublished}
+            features={project.data.features}
+          />
+        ))
+      }
+    </section>
+  </Center>
+</BaseLayout>
+
+<style lang="scss">
+  section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-l);
+
+    & + section {
+      margin-block-start: var(--space-3xl);
+    }
+  }
+</style>

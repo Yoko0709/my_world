@@ -2,14 +2,14 @@ import os
 from dotenv import load_dotenv
 from langchain_community.document_loaders import UnstructuredFileLoader
 from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings  # ✅ 新的导入
 from langchain_openai import ChatOpenAI
 from langchain.chains import RetrievalQA
 
 load_dotenv()
 
 # 文档加载
-def load_docs(doc_folder="docs"):
+def load_docs(doc_folder=r"E:\my_world\backend\ai-agent\docs"):
     docs = []
     for fname in os.listdir(doc_folder):
         path = os.path.join(doc_folder, fname)
@@ -28,7 +28,7 @@ def get_embedding_model():
 
 # 创建向量索引
 def create_index(docs, save_path="index"):
-    embedding = get_embedding_model()
+    embedding = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     vectorstore = FAISS.from_documents(docs, embedding)
     vectorstore.save_local(save_path)
     print(f"✅ 向量索引已保存至：{save_path}")
@@ -36,8 +36,8 @@ def create_index(docs, save_path="index"):
 
 # 加载已有索引
 def load_index(save_path="index"):
-    embedding = get_embedding_model()
-    return FAISS.load_local(save_path, embedding)
+    embedding = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    return FAISS.load_local(save_path, embedding, allow_dangerous_deserialization=True)
 
 # 创建 DeepSeek 模型问答链
 def get_qa_chain(vectorstore):

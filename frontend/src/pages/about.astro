@@ -1,0 +1,187 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Center from "../components/Center.astro";
+import PageHeader from "../components/PageHeader.astro";
+
+// ====== 可编辑数据（填你自己的信息） ======
+const title = "ABOUT ME";
+const description = "Who I am, what I do, and where to find me.";
+
+const intro = `
+I’m Ren, a master student at the University of Tokyo. I build small, playful things around AI × web, and explore multispectral imaging and RAG evaluation. I enjoy writing notes and turning ideas into tiny experiments.
+`;
+
+const avatarSrc = "/images/avatar.jpg"; // 替换为你的生活照路径
+const avatarAlt = "Ren's photo";
+
+// Skills：分组展示
+const skills: Record<string, string[]> = {
+  Languages: ["Python", "JavaScript/TypeScript", "SQL"],
+  Frameworks: ["Flask", "Astro", "FastAPI", "PyTorch"],
+  Cloud: ["AWS (Bedrock, S3)", "Docker"],
+  Tools: ["Git", "FAISS / OpenSearch", "Power BI"],
+};
+
+// Experience：时间线（按时间倒序）
+const experience = [
+  {
+    when: "2025 — present",
+    where: "UTokyo",
+    role: "Master student / Research",
+    what: "Multispectral imaging and RAG evaluation; notes and small web apps.",
+  },
+  {
+    when: "2024",
+    where: "Konica Minolta",
+    role: "Intern",
+    what: "RAG evaluation pipeline with AWS Bedrock; dataset curation & metrics.",
+  },
+  {
+    when: "2023",
+    where: "Course / Personal",
+    role: "Projects",
+    what: "Recipe clustering mini app; various experiments and notes.",
+  },
+];
+
+
+---
+
+<BaseLayout title={title} description={description} includeFooter padBottom>
+  <PageHeader title={title} description={description} />
+
+  <Center>
+    <article class="about">
+      <!-- 顶部：头像 + 自我介绍 -->
+      <section class="intro">
+        <img src={avatarSrc} alt={avatarAlt} class="avatar" loading="lazy" />
+        <div class="intro-text">
+          <h1 class="visually-hidden">{title}</h1>
+          <p set:html={intro} />
+        </div>
+      </section>
+
+      <!-- Skills -->
+      <section class="block">
+        <h2 class="block-title">SKILLS</h2>
+        <div class="skills">
+          {Object.entries(skills).map(([group, items]) => (
+            <div class="skill-group">
+              <h3 class="skill-head">{group}</h3>
+              <ul class="pills">
+                {items.map((it) => <li class="pill">{it}</li>)}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <!-- Experience -->
+      <section class="block">
+        <h2 class="block-title">EXPERIENCE</h2>
+        <ol class="timeline">
+          {experience.map((e) => (
+            <li class="timeline-item">
+              <div class="when">{e.when}</div>
+              <div class="what">
+                <div class="line"><b>{e.where}</b> · {e.role}</div>
+                <div class="desc">{e.what}</div>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+  </Center>
+</BaseLayout>
+
+<style lang="scss">
+  .about {
+    display: grid;
+    gap: var(--space-3xl);
+    padding-block-end: var(--space-3xl);
+  }
+
+  .intro {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-l);
+    align-items: center;
+
+    @media (width < 720px) {
+      grid-template-columns: 1fr;
+      text-align: left;
+    }
+  }
+
+  .avatar {
+    width: 112px;
+    height: 112px;
+    object-fit: cover;
+    border-radius: 16px; /* 生活照：方形圆角；想要圆形可改为 50% */
+    border: 1px solid var(--gray-5);
+    box-shadow: 0 6px 16px rgba(0,0,0,.06);
+  }
+
+  .intro-text p {
+    font-size: var(--step-1);
+    line-height: 1.7;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  .block { display: grid; gap: var(--space-m); }
+  .block-title {
+    font-size: var(--step-1);
+    font-weight: 700;
+    letter-spacing: .02em;
+  }
+
+  /* Skills */
+  .skills {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: var(--space-l);
+
+    @media (width < 720px) { grid-template-columns: 1fr; }
+  }
+  .skill-group { display: grid; gap: var(--space-xs); }
+  .skill-head { font-weight: 600; font-size: var(--step-0); }
+  .pills {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    list-style: none; margin: 0; padding: 0;
+  }
+  .pill {
+    border: 1px solid var(--gray-6);
+    background: #fff;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: var(--step--1);
+  }
+
+  /* Timeline */
+  .timeline {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; gap: var(--space-m);
+  }
+  .timeline-item {
+    display: grid; grid-template-columns: 160px 1fr; gap: var(--space-m);
+    @media (width < 640px) { grid-template-columns: 1fr; }
+  }
+  .when { color: var(--gray-11); font-size: var(--step--1); }
+  .what .line { font-size: var(--step-0); }
+  .what .desc { color: var(--gray-11); margin-top: 4px; }
+
+  /* Links */
+  .links {
+    display: flex; flex-wrap: wrap; gap: 12px 16px; padding: 0; margin: 0; list-style: none;
+  }
+  .links a { text-decoration: underline; color: var(--gray-12); }
+  .links a:hover { opacity: .9; }
+
+  /* A11y */
+  .visually-hidden {
+    position: absolute !important;
+    height: 1px; width: 1px; overflow: hidden;
+    clip: rect(1px, 1px, 1px, 1px); white-space: nowrap;
+  }
+</style>
