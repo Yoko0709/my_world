@@ -42,7 +42,7 @@ const description = "A place for my papers and projects.";
           <PostLink
             url={`papers/${paper.id}`}
             title={smartquotes(paper.data.title)}
-            description={smartquotes(paper.data.description)}
+            description={smartquotes(paper.data.description ?? "")}
             datePublished={paper.data.datePublished}
             features={paper.data.features}
           />
@@ -56,7 +56,7 @@ const description = "A place for my papers and projects.";
           <PostLink
             url={project.data.url}
             title={smartquotes(project.data.title)}
-            description={smartquotes(project.data.description)}
+            description={smartquotes(project.data.description ?? "")}
             datePublished={project.data.datePublished}
             features={project.data.features}
           />
