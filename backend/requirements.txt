@@ -1,6 +1,7 @@
 # Web 框架
 flask
 python-dotenv
+gunicorn
 
 # LangChain 相关
 langchain
