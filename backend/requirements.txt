@@ -1,37 +1,22 @@
-# ✅ 让 pip 直接用 PyTorch 的 CPU 预编译轮子（避免源码编译超级慢）
---extra-index-url https://download.pytorch.org/whl/cpu
-
 # —— Web 框架 ——
 flask==3.0.3
-waitress==2.1.2
+waitress==3.0.0
 flask-cors==4.0.0
 python-dotenv==1.0.1
 
-# —— LangChain 及集成 ——
-langchain==0.2.14
-langchain-community==0.2.12
-langchain-huggingface==0.1.0
+# —— LangChain 及集成（与 0.2.x 匹配的稳定组合） ——
+langchain==0.2.16
+langchain-community==0.2.16
 langchain-openai==0.1.22
+langchain-huggingface==0.0.3
 
-# —— 向量数据库（配套 numpy 版本，避免 ABI 冲突）——
+# —— 向量库 & 文档解析 ——
 faiss-cpu==1.8.0.post1
-numpy==1.26.4
+pypdf==4.3.1
 
-# —— HuggingFace / SBERT（保留 sentence-transformers，固定稳定组合）——
+# —— HF Embeddings（不在这里装 torch） ——
+sentence-transformers==3.0.1
 transformers==4.43.4
-sentence-transformers==2.7.0
-torch==2.3.1+cpu
-# ⚠️ 如果你确实不用到音频/视觉，就不要装下面两行（能显著减小体积/加快构建）
-# torchaudio==2.3.1+cpu
-# torchvision==0.18.1+cpu
 
-# —— 文档解析（Windows/Linux 兼容）——
-unstructured
-pdfminer.six
-pillow
-# # Windows 用 python-magic-bin；Linux/Mac 用 python-magic
-# python-magic; sys_platform != "win32"
-python-magic-bin; sys_platform == "win32"
-
-# —— 其他工具 ——
+# —— 其他 ——
 tiktoken==0.7.0
