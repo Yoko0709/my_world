@@ -20,6 +20,7 @@ faiss-cpu
 
 # HuggingFace 模型
 transformers
+sentence-transformers
 
 # 其他工具
 tiktoken
