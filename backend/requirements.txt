@@ -1,26 +1,37 @@
-# Web 框架
-flask
-python-dotenv
-waitress
+# ✅ 让 pip 直接用 PyTorch 的 CPU 预编译轮子（避免源码编译超级慢）
+--extra-index-url https://download.pytorch.org/whl/cpu
 
-# LangChain 相关
-langchain
-langchain-community
-langchain-huggingface
-langchain-openai
+# —— Web 框架 ——
+flask==3.0.3
+waitress==2.1.2
+flask-cors==4.0.0
+python-dotenv==1.0.1
 
-# 文档解析
+# —— LangChain 及集成 ——
+langchain==0.2.14
+langchain-community==0.2.12
+langchain-huggingface==0.1.0
+langchain-openai==0.1.22
+
+# —— 向量数据库（配套 numpy 版本，避免 ABI 冲突）——
+faiss-cpu==1.8.0.post1
+numpy==1.26.4
+
+# —— HuggingFace / SBERT（保留 sentence-transformers，固定稳定组合）——
+transformers==4.43.4
+sentence-transformers==2.7.0
+torch==2.3.1+cpu
+# ⚠️ 如果你确实不用到音频/视觉，就不要装下面两行（能显著减小体积/加快构建）
+# torchaudio==2.3.1+cpu
+# torchvision==0.18.1+cpu
+
+# —— 文档解析（Windows/Linux 兼容）——
 unstructured
 pdfminer.six
-python-magic
 pillow
+# # Windows 用 python-magic-bin；Linux/Mac 用 python-magic
+# python-magic; sys_platform != "win32"
+python-magic-bin; sys_platform == "win32"
 
-# 向量数据库
-faiss-cpu
-
-# HuggingFace 模型
-transformers
-sentence-transformers
-
-# 其他工具
-tiktoken
+# —— 其他工具 ——
+tiktoken==0.7.0
