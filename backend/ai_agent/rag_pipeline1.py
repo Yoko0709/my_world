@@ -1,58 +1,70 @@
+# backend/ai_agent/rag_pipeline1.py
 import os
-from dotenv import load_dotenv
-from langchain_community.document_loaders import UnstructuredFileLoader
+from pathlib import Path
+from typing import List
+from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain_community.vectorstores import FAISS
-from langchain_huggingface import HuggingFaceEmbeddings  # ✅ 新的导入
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_openai import ChatOpenAI
 from langchain.chains import RetrievalQA
 
-load_dotenv()
+EMBED_MODEL = os.getenv("EMBED_MODEL", "BAAI/bge-small-zh-v1.5")  # ← 统一！
+EMBED_KW = {"device": "cpu"}
 
-# 文档加载
-def load_docs(doc_folder=r"backend\ai-agent\docs"):
+def _emb():
+    return HuggingFaceEmbeddings(model_name=EMBED_MODEL, model_kwargs=EMBED_KW)
+
+def load_docs(doc_folder: str):
+    doc_dir = Path(doc_folder)
     docs = []
-    for fname in os.listdir(doc_folder):
-        path = os.path.join(doc_folder, fname)
-        if path.endswith(".pdf") or path.endswith(".txt"):
-            loader = UnstructuredFileLoader(path)
-            docs += loader.load()
+    if not doc_dir.exists():
+        print(f"[load_docs] 文档目录不存在：{doc_dir}")
+        return docs
+    for p in doc_dir.iterdir():
+        if p.suffix.lower() == ".pdf":
+            docs.extend(PyPDFLoader(str(p)).load())
+        elif p.suffix.lower() == ".txt":
+            docs.extend(TextLoader(str(p), encoding="utf-8").load())
     print(f"✅ 加载文档完成，共 {len(docs)} 条 chunk")
     return docs
 
-# 创建嵌入（HuggingFace 本地中文模型）
-def get_embedding_model():
-    return HuggingFaceEmbeddings(
-        model_name="BAAI/bge-small-zh-v1.5",
-        model_kwargs={"device": "cpu"}  # 若使用 GPU 改为 "cuda"
-    )
-
-# 创建向量索引
-def create_index(docs, save_path="index"):
-    embedding = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    vectorstore = FAISS.from_documents(docs, embedding)
-    vectorstore.save_local(save_path)
+def create_index(docs, save_path: str):
+    save_path = str(Path(save_path).resolve())
+    vs = FAISS.from_documents(docs, _emb())
+    Path(save_path).mkdir(parents=True, exist_ok=True)
+    vs.save_local(save_path)
     print(f"✅ 向量索引已保存至：{save_path}")
-    return vectorstore
+    return vs
 
-# 加载已有索引
-def load_index(save_path="index"):
-    embedding = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    return FAISS.load_local(save_path, embedding, allow_dangerous_deserialization=True)
+def load_index(save_path: str):
+    save_path = str(Path(save_path).resolve())
+    return FAISS.load_local(save_path, _emb(), allow_dangerous_deserialization=True)
 
-# 创建 DeepSeek 模型问答链
 def get_qa_chain(vectorstore):
     llm = ChatOpenAI(
-        model_name="deepseek-chat",
-        temperature=0,
+        model_name=os.getenv("OPENAI_MODEL", "deepseek-chat"),
+        temperature=float(os.getenv("TEMPERATURE", "0")),
         openai_api_key=os.getenv("OPENAI_API_KEY"),
-        openai_api_base=os.getenv("OPENAI_API_BASE")
+        openai_api_base=os.getenv("OPENAI_API_BASE"),
     )
+    if vectorstore is None:
+        from langchain.chains import LLMChain
+        from langchain.prompts import PromptTemplate
+        return LLMChain(llm=llm, prompt=PromptTemplate.from_template("直接回答：{q}"))
     return RetrievalQA.from_chain_type(
         llm=llm,
-        retriever=vectorstore.as_retriever(),
-        return_source_documents=False  # 如果需要返回引用可改为 True
+        retriever=vectorstore.as_retriever(search_kwargs={"k": 4}),
+        return_source_documents=False,
+        chain_type="stuff",
     )
 
-# 获取答案
-def get_answer(chain, question):
+def get_answer(chain, question: str):
+    # 统一用 invoke，兼容 RetrievalQA / LLMChain
+    if hasattr(chain, "invoke"):
+        # RetrievalQA 期望 {"query": "..."}；LLMChain 期望 {"q": "..."}
+        try:
+            return chain.invoke({"query": question})["result"]
+        except Exception:
+            return chain.invoke({"q": question})["text"]
+    # 兜底
     return chain.run(question)
