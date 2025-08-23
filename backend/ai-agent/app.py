@@ -12,12 +12,18 @@ else:
 
 qa_chain = get_qa_chain(vectorstore)
 
+# @app.route("/ask", methods=["POST"])
+# def ask():
+#     data = request.get_json()
+#     question = data.get("question", "")
+#     answer = get_answer(qa_chain, question)
+#     return jsonify({"answer": answer})
+
 @app.route("/ask", methods=["POST"])
 def ask():
     data = request.get_json()
-    question = data.get("question", "")
-    answer = get_answer(qa_chain, question)
-    return jsonify({"answer": answer})
+    return jsonify({"answer": f"你问了: {data}"})
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
