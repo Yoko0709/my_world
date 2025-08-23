@@ -9,7 +9,7 @@ from langchain.chains import RetrievalQA
 load_dotenv()
 
 # 文档加载
-def load_docs(doc_folder=r"E:\my_world\backend\ai-agent\docs"):
+def load_docs(doc_folder=r"backend\ai-agent\docs"):
     docs = []
     for fname in os.listdir(doc_folder):
         path = os.path.join(doc_folder, fname)

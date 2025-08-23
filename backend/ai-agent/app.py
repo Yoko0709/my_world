@@ -5,7 +5,7 @@ import os
 app = Flask(__name__)
 
 if not os.path.exists("index"):
-    docs = load_docs(r"E:\my_world\backend\ai-agent\docs")
+    docs = load_docs(r"backend\ai-agent\docs")
     vectorstore = create_index(docs)
 else:
     vectorstore = load_index()
@@ -20,4 +20,5 @@ def ask():
     return jsonify({"answer": answer})
 
 if __name__ == "__main__":
-    app.run(port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
