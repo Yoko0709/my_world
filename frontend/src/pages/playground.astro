@@ -8,14 +8,6 @@ import PageHeader from "../components/PageHeader.astro";
 import { smartquotes } from "../helpers/helpers";
 import BaseLayout from "../layouts/BaseLayout.astro";
 
-
-const posts = await getCollection("posts");
-posts.sort((a, b) => {
-  return dayjs(b.data.datePublished).isBefore(dayjs(a.data.datePublished))
-    ? -1
-    : 1;
-});
-
 // 取 papers
 const papers = await getCollection("papers");
 papers.sort((a, b) =>

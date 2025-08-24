@@ -1,0 +1,112 @@
+{
+  "$ref": "#/definitions/about",
+  "definitions": {
+    "about": {
+      "type": "object",
+      "properties": {
+        "locale": {
+          "type": "string",
+          "enum": [
+            "en",
+            "zh"
+          ],
+          "default": "en"
+        },
+        "draft": {
+          "type": "boolean",
+          "default": false
+        },
+        "title": {
+          "type": "string",
+          "default": "ABOUT ME"
+        },
+        "description": {
+          "type": "string",
+          "default": "Who I am, what I do, and where to find me."
+        },
+        "intro": {
+          "type": "string"
+        },
+        "avatar": {
+          "type": "string"
+        },
+        "skills": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "experience": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "when": {
+                "type": "string"
+              },
+              "where": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string"
+              },
+              "what": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "when",
+              "where",
+              "role",
+              "what"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "href": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  {
+                    "type": "string",
+                    "pattern": "^mailto\\:"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "label",
+              "href"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "$schema": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "intro",
+        "avatar",
+        "skills",
+        "experience"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
