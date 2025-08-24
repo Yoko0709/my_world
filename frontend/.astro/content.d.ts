@@ -173,11 +173,11 @@ declare module 'astro:content' {
 	};
 
 	type DataEntryMap = {
-		"badges": Record<string, {
+		"about": Record<string, {
   id: string;
   body?: string;
-  collection: "badges";
-  data: InferEntrySchema<"badges">;
+  collection: "about";
+  data: InferEntrySchema<"about">;
   rendered?: RenderedContent;
   filePath?: string;
 }>;
@@ -186,6 +186,38 @@ declare module 'astro:content' {
   body?: string;
   collection: "now";
   data: InferEntrySchema<"now">;
+  rendered?: RenderedContent;
+  filePath?: string;
+}>;
+"now_books": Record<string, {
+  id: string;
+  body?: string;
+  collection: "now_books";
+  data: InferEntrySchema<"now_books">;
+  rendered?: RenderedContent;
+  filePath?: string;
+}>;
+"now_feed": Record<string, {
+  id: string;
+  body?: string;
+  collection: "now_feed";
+  data: InferEntrySchema<"now_feed">;
+  rendered?: RenderedContent;
+  filePath?: string;
+}>;
+"now_movies": Record<string, {
+  id: string;
+  body?: string;
+  collection: "now_movies";
+  data: InferEntrySchema<"now_movies">;
+  rendered?: RenderedContent;
+  filePath?: string;
+}>;
+"now_music": Record<string, {
+  id: string;
+  body?: string;
+  collection: "now_music";
+  data: InferEntrySchema<"now_music">;
   rendered?: RenderedContent;
   filePath?: string;
 }>;
@@ -205,27 +237,11 @@ declare module 'astro:content' {
   rendered?: RenderedContent;
   filePath?: string;
 }>;
-"posts": Record<string, {
-  id: string;
-  body?: string;
-  collection: "posts";
-  data: InferEntrySchema<"posts">;
-  rendered?: RenderedContent;
-  filePath?: string;
-}>;
 "projects": Record<string, {
   id: string;
   body?: string;
   collection: "projects";
   data: InferEntrySchema<"projects">;
-  rendered?: RenderedContent;
-  filePath?: string;
-}>;
-"webrings": Record<string, {
-  id: string;
-  body?: string;
-  collection: "webrings";
-  data: InferEntrySchema<"webrings">;
   rendered?: RenderedContent;
   filePath?: string;
 }>;

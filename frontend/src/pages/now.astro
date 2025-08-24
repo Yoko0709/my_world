@@ -2,99 +2,76 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Center from "../components/Center.astro";
 import PageHeader from "../components/PageHeader.astro";
+import { getCollection, type CollectionEntry } from "astro:content";
 
 // ===== 页面元信息 =====
 const title = "NOW";
-const description = "What I’m into lately — books, films, music — plus a tiny feed of recent moments.";
+const description =
+  "What I’m into lately — books, films, music — plus a tiny feed of recent moments.";
 
-// ===== 更新时间（手动维护或后续自动化） =====
-const updated = "2025-08-18"; // TODO: 更新为当前日期
+// ===== 从 Content Collections 读取数据（按语言与草稿过滤） =====
+const locale: "en" | "zh" = "en";
 
-// ====== 推荐：Books / Movies / Music（占位示例） ======
-type Rec = {
-  title: string;
-  cover: string; // 图片路径或外链
-  note?: string;
-  href?: string; // 可选外链
-  meta?: string; // 作者/导演/年份 等
-};
+const [booksEntries, moviesEntries, musicEntries, feedEntries] =
+  await Promise.all([
+    getCollection(
+      "now_books",
+      (e) => e.data.locale === locale && !e.data.draft,
+    ),
+    getCollection(
+      "now_movies",
+      (e) => e.data.locale === locale && !e.data.draft,
+    ),
+    getCollection(
+      "now_music",
+      (e) => e.data.locale === locale && !e.data.draft,
+    ),
+    getCollection("now_feed", (e) => e.data.locale === locale && !e.data.draft),
+  ]);
 
-const books: Rec[] = [
-  {
-    title: "The Pragmatic Programmer",
-    meta: "Andrew Hunt, David Thomas",
-    cover: "/images/covers/book-placeholder.jpg",
-    note: "Timeless reminders about building and thinking like a craftsman.",
-    href: "https://example.com",
-  },
-  {
-    title: "Deep Learning with Python",
-    meta: "François Chollet",
-    cover: "/images/covers/book-placeholder.jpg",
-    note: "Clear, practical, and great for quick refreshers.",
-  },
-  {
-    title: "The Design of Everyday Things",
-    meta: "Don Norman",
-    cover: "/images/covers/book-placeholder.jpg",
-    note: "Why things feel intuitive (or not). A lens I keep using.",
-  },
-];
+type BookRec = CollectionEntry<"now_books">["data"];
+type MovieRec = CollectionEntry<"now_movies">["data"];
+type MusicRec = CollectionEntry<"now_music">["data"];
+type Mini = CollectionEntry<"now_feed">["data"];
 
-const movies: Rec[] = [
-  {
-    title: "Oppenheimer",
-    meta: "Christopher Nolan, 2023",
-    cover: "/images/covers/movie-placeholder.jpg",
-    note: "Dense, rhythmic, and disturbingly beautiful.",
-  },
-  {
-    title: "Past Lives",
-    meta: "Celine Song, 2023",
-    cover: "/images/covers/movie-placeholder.jpg",
-    note: "Quiet tension and tender timing.",
-  },
-  {
-    title: "Dune: Part Two",
-    meta: "Denis Villeneuve, 2024",
-    cover: "/images/covers/movie-placeholder.jpg",
-    note: "Scale done right; sound and sand.",
-  },
-];
+// 统一 cover 字段（支持 ImageMetadata 或 string）
+function normalizeCover(cover: BookRec["cover"]) {
+  if (typeof cover === "string") {
+    return { url: cover, w: 0, h: 0, isMeta: false };
+  }
+  // ImageMetadata
+  return { url: cover.src, w: cover.width, h: cover.height, isMeta: true };
+}
 
-const music: Rec[] = [
-  {
-    title: "Random Access Memories",
-    meta: "Daft Punk",
-    cover: "/images/covers/music-placeholder.jpg",
-    note: "Warm analog textures; perfect late-night focus.",
-  },
-  {
-    title: "A Moon Shaped Pool",
-    meta: "Radiohead",
-    cover: "/images/covers/music-placeholder.jpg",
-    note: "Fragile and meticulous; strings like mist.",
-  },
-  {
-    title: "Nujabes Collection",
-    meta: "Nujabes",
-    cover: "/images/covers/music-placeholder.jpg",
-    note: "Gentle beats for reading and jotting notes.",
-  },
-];
+const books = booksEntries.map((e) => {
+  const c = normalizeCover(e.data.cover);
+  return { ...e.data, coverUrl: c.url, coverW: c.w, coverH: c.h };
+});
+const movies = moviesEntries.map((e) => {
+  const c = normalizeCover(e.data.cover);
+  return { ...e.data, coverUrl: c.url, coverW: c.w, coverH: c.h };
+});
+const music = musicEntries.map((e) => {
+  const c = normalizeCover(e.data.cover);
+  return { ...e.data, coverUrl: c.url, coverW: c.w, coverH: c.h };
+});
 
-// ====== 最近三条动态（QQ 空间感） ======
-type Mini = {
-  date: string; // "YYYY-MM-DD"
-  icon: string; // 📝 / 🎬 / 🎵 / ⚙️ ...
-  text: string;
-  href?: string; // 可选链接
-};
-const feed: Mini[] = [
-  { date: "2025-08-18", icon: "⚙️", text: "Tweaked my RAG prompt for better grounding on PDFs." },
-  { date: "2025-08-16", icon: "📝", text: "Drafted notes on multispectral band selection." },
-  { date: "2025-08-13", icon: "🎵", text: "Looping Nujabes while cleaning datasets." },
-];
+// feed（排序 + 日期字符串）
+const feed = [...feedEntries.map((e) => e.data)]
+  .filter(
+    (x, i, arr) =>
+      arr.findIndex(
+        (y) => y.text === x.text && y.date.getTime() === x.date.getTime(),
+      ) === i,
+  )
+  .sort((a, b) => b.date.getTime() - a.date.getTime())
+  .map((f) => ({ ...f, dateStr: f.date.toISOString().slice(0, 10) }));
+
+const updated =
+  feed[0]?.dateStr ??
+  new Date()
+    .toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo" })
+    .replaceAll("/", "-");
 ---
 
 <BaseLayout title={title} description={description} includeFooter padBottom>
@@ -107,59 +84,91 @@ const feed: Mini[] = [
       <section class="section">
         <h2 class="section-title">Books</h2>
         <ul class="grid-cards">
-          {books.map((b) => (
-            <li class="card">
-              <div class="media">
-                <img src={b.cover} alt={b.title} loading="lazy" />
-              </div>
-              <div class="info">
-                <div class="title">{b.title}</div>
-                {b.meta && <div class="meta">{b.meta}</div>}
-                {b.note && <p class="note">{b.note}</p>}
-                {b.href && (
-                  <a class="more" href={b.href} target="_blank" rel="noopener noreferrer">
-                    Learn more ↗
-                  </a>
-                )}
-              </div>
-            </li>
-          ))}
+          {
+            books.map((b) => (
+              <li class="card v">
+                <div class="media ratio-3x4">
+                  <img
+                    src={b.coverUrl}
+                    alt={`${b.title} cover`}
+                    width={b.coverW || 600}
+                    height={b.coverH || 800}
+                    loading="lazy"
+                    onerror="this.style.display='none';this.parentElement.classList.add('broken')"
+                  />
+                </div>
+                <div class="info">
+                  <div class="title">{b.title}</div>
+                  {b.meta && <div class="meta">{b.meta}</div>}
+                  {b.note && <p class="note">{b.note}</p>}
+                  {b.href && (
+                    <a
+                      class="more"
+                      href={b.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Learn more ↗
+                    </a>
+                  )}
+                </div>
+              </li>
+            ))
+          }
         </ul>
       </section>
 
       <section class="section">
         <h2 class="section-title">Movies</h2>
         <ul class="grid-cards">
-          {movies.map((m) => (
-            <li class="card">
-              <div class="media">
-                <img src={m.cover} alt={m.title} loading="lazy" />
-              </div>
-              <div class="info">
-                <div class="title">{m.title}</div>
-                {m.meta && <div class="meta">{m.meta}</div>}
-                {m.note && <p class="note">{m.note}</p>}
-              </div>
-            </li>
-          ))}
+          {
+            movies.map((m) => (
+              <li class="card v">
+                <div class="media ratio-2x3">
+                  <img
+                    src={m.coverUrl}
+                    alt={`${m.title} cover`}
+                    width={m.coverW || 600}
+                    height={m.coverH || 900}
+                    loading="lazy"
+                    onerror="this.style.display='none';this.parentElement.classList.add('broken')"
+                  />
+                </div>
+                <div class="info">
+                  <div class="title">{m.title}</div>
+                  {m.meta && <div class="meta">{m.meta}</div>}
+                  {m.note && <p class="note">{m.note}</p>}
+                </div>
+              </li>
+            ))
+          }
         </ul>
       </section>
 
       <section class="section">
         <h2 class="section-title">Music</h2>
         <ul class="grid-cards">
-          {music.map((s) => (
-            <li class="card">
-              <div class="media">
-                <img src={s.cover} alt={s.title} loading="lazy" />
-              </div>
-              <div class="info">
-                <div class="title">{s.title}</div>
-                {s.meta && <div class="meta">{s.meta}</div>}
-                {s.note && <p class="note">{s.note}</p>}
-              </div>
-            </li>
-          ))}
+          {
+            music.map((s) => (
+              <li class="card v">
+                <div class="media ratio-1x1">
+                  <img
+                    src={s.coverUrl}
+                    alt={`${s.title} cover`}
+                    width={s.coverW || 800}
+                    height={s.coverH || 800}
+                    loading="lazy"
+                    onerror="this.style.display='none';this.parentElement.classList.add('broken')"
+                  />
+                </div>
+                <div class="info">
+                  <div class="title">{s.title}</div>
+                  {s.meta && <div class="meta">{s.meta}</div>}
+                  {s.note && <p class="note">{s.note}</p>}
+                </div>
+              </li>
+            ))
+          }
         </ul>
       </section>
 
@@ -167,23 +176,35 @@ const feed: Mini[] = [
       <section class="section">
         <h2 class="section-title">Recent</h2>
         <ol class="mini-feed">
-          {feed.slice(0, 3).map((f) => (
-            <li class="mini-item">
-              <span class="dot" aria-hidden="true">{f.icon}</span>
-              <div class="mini-body">
-                <div class="mini-head">
-                  <time class="mini-date">{f.date}</time>
+          {
+            feed.slice(0, 3).map((f) => (
+              <li class="mini-item">
+                <span class="dot" aria-hidden="true">
+                  {f.icon}
+                </span>
+                <div class="mini-body">
+                  <div class="mini-head">
+                    <time class="mini-date" datetime={f.dateStr}>
+                      {f.dateStr}
+                    </time>
+                  </div>
+                  <div class="mini-text">
+                    {f.href ? (
+                      <a
+                        href={f.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {f.text}
+                      </a>
+                    ) : (
+                      f.text
+                    )}
+                  </div>
                 </div>
-                <div class="mini-text">
-                  {f.href ? (
-                    <a href={f.href} target="_blank" rel="noopener noreferrer">{f.text}</a>
-                  ) : (
-                    f.text
-                  )}
-                </div>
-              </div>
-            </li>
-          ))}
+              </li>
+            ))
+          }
         </ol>
       </section>
     </article>
@@ -203,55 +224,170 @@ const feed: Mini[] = [
     margin: 0;
   }
 
-  .section { display: grid; gap: var(--space-m); }
+  .section {
+    display: grid;
+    gap: var(--space-m);
+  }
   .section-title {
     font-size: var(--step-1);
     font-weight: 700;
-    letter-spacing: .02em;
+    letter-spacing: 0.02em;
   }
 
   /* 推荐卡片网格 */
   .grid-cards {
-    list-style: none; margin: 0; padding: 0;
-    display: grid; gap: var(--space-l);
-    grid-template-columns: repeat(3, minmax(0,1fr));
-
-    @media (width < 960px) { grid-template-columns: repeat(2, minmax(0,1fr)); }
-    @media (width < 640px) { grid-template-columns: 1fr; }
-  }
-
-  .card {
+    list-style: none;
+    margin: 0;
+    padding: 0;
     display: grid;
-    grid-template-columns: 96px 1fr;
-    gap: var(--space-m);
-    border: 1px solid var(--gray-6);
-    border-radius: 14px;
-    background: #fff;
-    box-shadow: 0 6px 16px rgba(0,0,0,.04);
-    padding: var(--space-m);
-    align-items: center;
+    gap: var(--space-l);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
 
-    @media (width < 480px) {
-      grid-template-columns: 72px 1fr;
+    @media (width < 960px) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    @media (width < 640px) {
+      grid-template-columns: 1fr;
     }
   }
 
-  .media img {
-    width: 96px; height: 96px; object-fit: cover;
-    border-radius: 10px; border: 1px solid var(--gray-5);
-    background: #fafafa;
+  /* 网格：更通透的书店风留白 */
+  .grid-cards {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-xl);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    @media (width < 960px) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    @media (width < 640px) {
+      grid-template-columns: 1fr;
+    }
   }
 
-  .info { display: grid; gap: 6px; }
-  .title { font-weight: 600; }
-  .meta { font-size: var(--step--1); color: var(--gray-11); }
-  .note { margin: 0; color: var(--gray-12); }
-  .more { font-size: var(--step--1); text-decoration: underline; }
+  /* 竖版卡片：图在上、文在下，不会有文字挤入图片框 */
+  .card.v {
+    display: grid;
+    gap: var(--space-m);
+    border: 1px solid var(--gray-6);
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+    padding: var(--space-m);
+  }
+
+  /* 固定比例盒，防布局跳动 */
+  .media {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--gray-5);
+    background: #fafafa;
+  }
+  .ratio-3x4 {
+    aspect-ratio: 3 / 4;
+  }
+  .ratio-2x3 {
+    aspect-ratio: 2 / 3;
+  }
+  .ratio-1x1 {
+    aspect-ratio: 1 / 1;
+  }
+
+  .media img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover; /* 填满容器，不会把文字挤出来 */
+  }
+
+  /* 图片加载失败占位：隐藏坏图，不显示 alt 文本 */
+  .media.broken::after {
+    content: "📕";
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 40px;
+    color: var(--gray-10);
+  }
+
+  /* 文本：限制行数，防止撑破卡片 */
+  .info {
+    display: grid;
+    gap: 6px;
+  }
+  .title {
+    font-weight: 800;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .meta {
+    font-size: var(--step--1);
+    color: var(--gray-11);
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .note {
+    margin: 0;
+    color: var(--gray-12);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .more {
+    font-size: var(--step--1);
+    text-decoration: underline;
+  }
+
+  /* 悬浮与无障碍 */
+  .card.v:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.08);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .card.v:hover {
+      transform: none;
+    }
+  }
+
+  /* 你原来的 .mini-* 区块保持不变 */
+
+  .info {
+    display: grid;
+    gap: 6px;
+  }
+  .title {
+    font-weight: 600;
+  }
+  .meta {
+    font-size: var(--step--1);
+    color: var(--gray-11);
+  }
+  .note {
+    margin: 0;
+    color: var(--gray-12);
+  }
+  .more {
+    font-size: var(--step--1);
+    text-decoration: underline;
+  }
 
   /* 最近动态 */
   .mini-feed {
-    list-style: none; margin: 0; padding: 0;
-    display: grid; gap: var(--space-m);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-m);
   }
 
   .mini-item {
@@ -262,16 +398,30 @@ const feed: Mini[] = [
   }
 
   .dot {
-    width: 24px; height: 24px;
-    display: grid; place-items: center;
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
     border-radius: 999px;
     background: #f6f6f6;
     border: 1px solid var(--gray-6);
     font-size: 14px;
   }
 
-  .mini-body { display: grid; gap: 2px; }
-  .mini-head { display: flex; gap: 8px; align-items: baseline; }
-  .mini-date { font-size: var(--step--1); color: var(--gray-11); }
-  .mini-text a { text-decoration: underline; }
+  .mini-body {
+    display: grid;
+    gap: 2px;
+  }
+  .mini-head {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+  }
+  .mini-date {
+    font-size: var(--step--1);
+    color: var(--gray-11);
+  }
+  .mini-text a {
+    text-decoration: underline;
+  }
 </style>
