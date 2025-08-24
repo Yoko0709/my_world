@@ -4,15 +4,24 @@ from pathlib import Path
 from typing import List
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain_community.vectorstores import FAISS
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_openai import ChatOpenAI
 from langchain.chains import RetrievalQA
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings  # ← 补上 OpenAIEmbeddings
 
-EMBED_MODEL = os.getenv("EMBED_MODEL", "BAAI/bge-small-zh-v1.5")  # ← 统一！
-EMBED_KW = {"device": "cpu"}
 
 def _emb():
-    return HuggingFaceEmbeddings(model_name=EMBED_MODEL, model_kwargs=EMBED_KW)
+    """
+    推荐把“嵌入”的 base/key 与“对话模型”的 base/key 分开配置：
+      OPENAI_EMBEDDINGS_KEY    （可选）仅供嵌入使用；没设置就回退到 OPENAI_API_KEY
+      OPENAI_EMBEDDINGS_BASE   （可选）嵌入端点的 base；用 OpenAI 官方时留空
+      OPENAI_EMBEDDINGS_MODEL  （可选）默认 text-embedding-3-small
+    """
+    api_key = os.getenv("OPENAI_EMBEDDINGS_KEY")
+    model = os.getenv("OPENAI_EMBEDDINGS_MODEL", "text-embedding-3-small")
+    base = os.getenv("OPENAI_EMBEDDINGS_BASE")  # 官方 OpenAI 留空即可
+
+    if base:
+        return OpenAIEmbeddings(model=model, openai_api_key=api_key, openai_api_base=base)
+    return OpenAIEmbeddings(model=model, openai_api_key=api_key)
 
 def load_docs(doc_folder: str):
     doc_dir = Path(doc_folder)
@@ -42,10 +51,9 @@ def load_index(save_path: str):
 
 def get_qa_chain(vectorstore):
     llm = ChatOpenAI(
-        model_name=os.getenv("OPENAI_MODEL", "deepseek-chat"),
-        temperature=float(os.getenv("TEMPERATURE", "0")),
-        openai_api_key=os.getenv("OPENAI_API_KEY"),
-        openai_api_base=os.getenv("OPENAI_API_BASE"),
+        model=os.getenv("DEEPSEEK_MODEL", "deepseek-chat"),
+        api_key=os.getenv("DEEPSEEK_API_KEY"),
+        base_url=os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),
     )
     if vectorstore is None:
         from langchain.chains import LLMChain

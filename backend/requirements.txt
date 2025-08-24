@@ -1,22 +1,13 @@
-# —— Web 框架 ——
 flask==3.0.3
 waitress==3.0.0
 flask-cors==4.0.0
 python-dotenv==1.0.1
 
-# —— LangChain 及集成（与 0.2.x 匹配的稳定组合） ——
 langchain==0.2.16
 langchain-community==0.2.16
 langchain-openai==0.1.22
-langchain-huggingface==0.0.3
 
-# —— 向量库 & 文档解析 ——
 faiss-cpu==1.8.0.post1
 pypdf==4.3.1
-
-# —— HF Embeddings（不在这里装 torch） ——
-sentence-transformers==3.0.1
-transformers==4.43.4
-
-# —— 其他 ——
 tiktoken==0.7.0
+
