@@ -26,16 +26,27 @@ def create_app():
     def ensure_qa_chain():
         if app.qa_chain is not None:
             return app.qa_chain
+
         with app._qa_lock:
             if app.qa_chain is not None:
                 return app.qa_chain
-            # 如果没有索引就创建，有就加载
-            if not os.path.exists(app.index_dir):
-                os.makedirs(app.index_dir, exist_ok=True)
+
+            os.makedirs(app.index_dir, exist_ok=True)
+            faiss_file = os.path.join(app.index_dir, "index.faiss")
+            store_file = os.path.join(app.index_dir, "index.pkl")
+            need_build = not (os.path.isfile(faiss_file) and os.path.isfile(store_file))
+
+            if need_build:
                 docs = load_docs(app.docs_dir)
-                vectorstore = create_index(docs, save_path=app.index_dir)  # 传入索引目录
+                vectorstore = create_index(docs, save_path=app.index_dir)
             else:
-                vectorstore = load_index(save_path=app.index_dir)
+                try:
+                    vectorstore = load_index(save_path=app.index_dir)
+                except Exception as e:
+                    print(f"[index-load-failed] {e} -> rebuilding", flush=True)
+                    docs = load_docs(app.docs_dir)
+                    vectorstore = create_index(docs, save_path=app.index_dir)
+
             app.qa_chain = get_qa_chain(vectorstore)
             return app.qa_chain
 
