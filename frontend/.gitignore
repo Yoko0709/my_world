@@ -35,3 +35,12 @@ _site/
 
 # Lychee
 .lycheecache
+
+# ===== Node / Astro =====
+node_modules/
+frontend/.astro/
+frontend/dist/
+frontend/.vercel/
+.cache/
+.vscode/
+.DS_Store
