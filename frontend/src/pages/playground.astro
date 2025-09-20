@@ -32,7 +32,7 @@ const description = "A place for my papers and projects.";
       {
         papers.map((paper) => (
           <PostLink
-            url={`papers/${paper.id}`}
+            url={paper.data.url}
             title={smartquotes(paper.data.title)}
             description={smartquotes(paper.data.description ?? "")}
             datePublished={paper.data.datePublished}

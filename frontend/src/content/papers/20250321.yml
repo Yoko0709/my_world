@@ -1,0 +1,9 @@
+title: "A Robust Detection Framework for Intelligent Growth Monitoring in Greenhouse Rose Cultivation"
+description: "Introduces ROSE-MAMBA-YOLO, a hybrid framework combining YOLOv11 with Mamba-inspired state-space modeling for robust rose detection in UAV imagery, achieving superior accuracy in challenging greenhouse environments."
+datePublished: 2025-03-21
+url: "https://ieeexplore.ieee.org/abstract/document/11020130"
+features:
+  - name: "IEEE Xplore"
+    url: "https://ieeexplore.ieee.org/abstract/document/11020130"
+  - name: "DOI"
+    url: "https://doi.org/10.1109/ICAACE65325.2025.11020130"

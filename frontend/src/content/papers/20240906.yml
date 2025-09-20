@@ -1,0 +1,9 @@
+title: "YOLOv10 and Mamba-Based Super-Resolution for Smart Rose Growth Monitoring Using UAV Imagery"
+description: "A UAV-based monitoring framework that integrates Mamba-driven super-resolution with YOLOv10 detection to enhance imagery quality and achieve accurate growth assessment of greenhouse roses."
+datePublished: 2024-09-06
+url: "https://ieeexplore.ieee.org/abstract/document/10735472"
+features:
+  - name: "IEEE Xplore"
+    url: "https://ieeexplore.ieee.org/abstract/document/10735472"
+  - name: "DOI"
+    url: "https://doi.org/10.1109/CCSB63463.2024.10735472"

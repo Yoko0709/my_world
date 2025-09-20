@@ -1,0 +1,9 @@
+title: "Seafloor debris detection using underwater images and deep learning-driven image restoration: A case study from Koh Tao, Thailand"
+description: "An underwater monitoring framework that integrates super-resolution reconstruction with an optimized YOLOv8 detector (SFD-YOLO) to enhance image quality and achieve state-of-the-art accuracy in seafloor debris detection."
+datePublished: 2025-03-10
+url: "https://doi.org/10.1016/j.marpolbul.2025.117710"
+features:
+  - name: "ScienceDirect"
+    url: "https://www.sciencedirect.com"
+  - name: "DOI"
+    url: "https://doi.org/10.1016/j.marpolbul.2025.117710"
