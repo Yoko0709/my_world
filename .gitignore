@@ -34,3 +34,7 @@ _site/
 
 # Others
 frontend/public/
+
+__pycache__/
+*.py[cod]
+*.pyo
