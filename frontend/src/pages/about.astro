@@ -74,14 +74,13 @@ const av = getAvatarSrc(about?.avatar);
           <h2 class="block-title">SKILLS</h2>
           <div class="skills">
             {Object.entries(about.skills).map(([group, items]) => (
-              <div class="skill-group" key={group}>
+              <div class="skill-group">
                 <h3 class="skill-head">{group}</h3>
                 <ul class="pills">
                   {(items as { name: string; tip?: string }[]).map((it) => (
                     <li
                       class="pill"
-                      data-tip={it.tip ?? undefined}  /* 没 tip 不写属性 */
-                      key={it.name}
+                      data-tip={it.tip ?? undefined}
                     >
                       {it.name}
                     </li>
@@ -99,7 +98,7 @@ const av = getAvatarSrc(about?.avatar);
           <h2 class="block-title">EXPERIENCE</h2>
           <ol class="timeline">
             {about.experience.map((e) => (
-              <li class="timeline-item" key={e.when + e.where}>
+              <li class="timeline-item">
                 <div class="when">{e.when}</div>
                 <div class="what">
                   <div class="line">
