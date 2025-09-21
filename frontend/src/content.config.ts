@@ -95,10 +95,11 @@ const now_books = defineCollection({
       title: z.string(),
       cover: z.union([image(), z.string()]),
       meta: z.string().optional(),
-      note: z.string().optional(),
       href: z.string().url().optional(),
       locale: z.enum(["en", "zh"]).default("en"),
       draft: z.boolean().default(false),
+      status: z.enum(["reading", "watching", "listening", "finished", "paused", "wishlist"]).optional(),
+      tags: z.array(z.string()).default([]),
     }),
 });
 
@@ -168,6 +169,8 @@ const about = defineCollection({
             where: z.string(),
             role: z.string().optional(),
             what: z.string().optional(),
+            link: z.string().optional(),
+            type: z.enum(["education", "research", "work", "award", "patent"]).optional()
           }),
         )
         .optional(),
