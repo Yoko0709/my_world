@@ -4,10 +4,12 @@ import Center from "../components/Center.astro";
 import PageHeader from "../components/PageHeader.astro";
 import { getCollection, type CollectionEntry } from "astro:content";
 import type { ImageMetadata } from "astro";
+import SocialLinks from "../components/SocialLinks.astro";
+
 // ===== 页面元信息 =====
 const locale: "en" | "zh" = "en";
 
-// 读取集合：按语言与草稿过滤（和你 NOW 页一致的风格）
+// 读取集合：按语言与草稿过滤
 const entries = await getCollection(
   "about",
   (e) => e.data.locale === locale && !e.data.draft,
@@ -16,7 +18,7 @@ const entries = await getCollection(
 // 取第一篇（singleton 约定只存 1 篇）
 const about = entries[0]?.data as CollectionEntry<"about">["data"];
 
-// 若没内容，给个兜底，避免构建期报错
+// 若没内容，兜底
 const title = about?.title ?? "ABOUT ME";
 const description = about?.description ?? "";
 
@@ -26,11 +28,9 @@ const updated = new Date()
 
 function getAvatarSrc(avatar: string | ImageMetadata | undefined) {
   if (!avatar) return { src: "", w: 0, h: 0, isMeta: false };
-  if (typeof avatar === "string")
-    return { src: avatar, w: 0, h: 0, isMeta: false };
+  if (typeof avatar === "string") return { src: avatar, w: 0, h: 0, isMeta: false };
   return { src: avatar.src, w: avatar.width, h: avatar.height, isMeta: true };
 }
-
 const av = getAvatarSrc(about?.avatar);
 ---
 
@@ -42,85 +42,80 @@ const av = getAvatarSrc(about?.avatar);
 
       <!-- 顶部：头像 + 简介 -->
       <section class="intro">
-        {
-          about?.avatar && (
-            <div class="avatar-wrap">
-              <img
-                src={av.src}
-                alt="Portrait"
-                width={av.w || 224}
-                height={av.h || 224}
-                loading="eager"
-                class="avatar"
-              />
-            </div>
-          )
-        }
+        {about?.avatar && (
+          <div class="avatar-wrap">
+            <img
+              src={av.src}
+              alt={about?.avatarAlt ?? "Portrait"}
+              width={av.w || 360}
+              height={av.h || 480}
+              loading="eager"
+              class="avatar"
+            />
+          </div>
+        )}
         <div class="intro-text">
           <p>{about?.intro}</p>
-          {
-            about?.links?.length && (
-              <ul class="links">
-                {about.links.map((l) => (
-                  <li>
-                    <a href={l.href} target="_blank" rel="noopener noreferrer">
-                      {l.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            )
-          }
+
+          {Array.isArray(about?.links) && about.links.length > 0 && (
+            <SocialLinks
+              links={about.links}
+              align="center"
+              size={24}
+              gap={16}
+            />
+          )}
         </div>
       </section>
 
       <!-- Skills -->
-      {
-        about?.skills && (
-          <section class="block">
-            <h2 class="block-title">SKILLS</h2>
-            <div class="skills">
-              {Object.entries(about.skills).map(([group, items]) => (
-                <div class="skill-group">
-                  <h3 class="skill-head">{group}</h3>
-                  <ul class="pills">
-                    {items.map((it) => (
-                      <li class="pill">{it}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </section>
-        )
-      }
+      {about?.skills && (
+        <section class="block">
+          <h2 class="block-title">SKILLS</h2>
+          <div class="skills">
+            {Object.entries(about.skills).map(([group, items]) => (
+              <div class="skill-group" key={group}>
+                <h3 class="skill-head">{group}</h3>
+                <ul class="pills">
+                  {(items as { name: string; tip?: string }[]).map((it) => (
+                    <li
+                      class="pill"
+                      data-tip={it.tip ?? undefined}  /* 没 tip 不写属性 */
+                      key={it.name}
+                    >
+                      {it.name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <!-- Experience -->
-      {
-        about?.experience?.length && (
-          <section class="block">
-            <h2 class="block-title">EXPERIENCE</h2>
-            <ol class="timeline">
-              {about.experience.map((e) => (
-                <li class="timeline-item">
-                  <div class="when">{e.when}</div>
-                  <div class="what">
-                    <div class="line">
-                      <b>{e.where}</b> · {e.role}
-                    </div>
-                    <div class="desc">{e.what}</div>
+      {about?.experience?.length && (
+        <section class="block">
+          <h2 class="block-title">EXPERIENCE</h2>
+          <ol class="timeline">
+            {about.experience.map((e) => (
+              <li class="timeline-item" key={e.when + e.where}>
+                <div class="when">{e.when}</div>
+                <div class="what">
+                  <div class="line">
+                    <b>{e.where}</b>{e.role ? ` · ${e.role}` : ""}
                   </div>
-                </li>
-              ))}
-            </ol>
-          </section>
-        )
-      }
+                  {e.what && <div class="desc">{e.what}</div>}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
 
       <!-- 正文（可选）：about.md 的 body -->
       <section class="block">
         <slot />
-        <!-- 如果你用 MDX 把正文当页面内容注入，可在此渲染 -->
       </section>
     </article>
   </Center>
@@ -143,111 +138,76 @@ const av = getAvatarSrc(about?.avatar);
     grid-template-columns: auto 1fr;
     gap: var(--space-l);
     align-items: center;
-    @media (width < 720px) {
-      grid-template-columns: 1fr;
-    }
+    @media (width < 720px) { grid-template-columns: 1fr; }
   }
-  .avatar-wrap {
-    inline-size: 224px;
-    block-size: 224px;
-  }
+  .avatar-wrap { inline-size: 240px; block-size: 300px; }
   .avatar {
-    inline-size: 100%;
-    block-size: 100%;
-    object-fit: cover;
-    border-radius: 16px;
-    border: 1px solid var(--gray-5);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+    inline-size: 100%; block-size: 100%; object-fit: cover;
+    border-radius: 16px; border: 1px solid var(--gray-5);
+    box-shadow: 0 6px 16px rgba(0,0,0,.06);
   }
   .intro-text p {
-    font-size: var(--step-1);
+    font-size: var(--step--1);
     line-height: 1.7;
+    white-space: pre-line;
     margin: 0;
     text-wrap: balance;
   }
 
-  .block {
-    display: grid;
-    gap: var(--space-m);
-  }
-  .block-title {
-    font-size: var(--step-1);
-    font-weight: 700;
-    letter-spacing: 0.02em;
-  }
+  .block { display: grid; gap: var(--space-m); }
+  .block-title { font-size: var(--step-1); font-weight: 700; letter-spacing: .02em; }
 
   .skills {
     display: grid;
     gap: var(--space-xl);
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    @media (width < 720px) {
-      grid-template-columns: 1fr;
-    }
+    @media (width < 720px) { grid-template-columns: 1fr; }
   }
-  .skill-group {
-    display: grid;
-    gap: var(--space-s);
-  }
-  .skill-head {
-    font-weight: 600;
-    font-size: var(--step-0);
-  }
+  .skill-group { display: block; }
+  .skill-head { font-size: var(--step-0); font-weight: 600; margin-bottom: 8px; }
+
   .pills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    list-style: none;
-    margin: 0;
-    padding: 0;
+    display: flex; flex-wrap: wrap; gap: 8px;
+    list-style: none; margin: 0; padding: 0;
   }
   .pill {
-    border: 1px solid var(--gray-6);
-    background: #fff;
-    padding: 6px 10px;
-    border-radius: 999px;
+    position: relative;
+    background: var(--gray-3);
+    border-radius: 8px;
+    padding: 6px 12px;
+    cursor: default;
+    transition: background .2s ease;
     font-size: var(--step--1);
   }
+  .pill:hover { background: var(--gray-4); }
+
+  /* 只有存在 data-tip 的 pill 才展示 tooltip */
+  .pill[data-tip]::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: 120%; left: 50%;
+    transform: translateX(-50%);
+    background: var(--gray-12); color: #fff;
+    font-size: 0.75rem; padding: 4px 8px; border-radius: 4px;
+    white-space: nowrap; opacity: 0; pointer-events: none;
+    transition: opacity .2s ease; z-index: 1;
+  }
+  .pill[data-tip]:hover::after { opacity: 1; }
 
   .timeline {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: var(--space-m);
+    list-style: none; margin: 0; padding: 0;
+    display: grid; gap: var(--space-m);
   }
   .timeline-item {
-    display: grid;
-    grid-template-columns: 160px 1fr;
-    gap: var(--space-m);
-    @media (width < 640px) {
-      grid-template-columns: 1fr;
-    }
+    display: grid; grid-template-columns: 160px 1fr; gap: var(--space-m);
+    @media (width < 640px) { grid-template-columns: 1fr; }
   }
-  .when {
-    color: var(--gray-11);
-    font-size: var(--step--1);
-  }
-  .what .line {
-    font-size: var(--step-0);
-  }
-  .what .desc {
-    color: var(--gray-11);
-    margin-top: 4px;
-  }
+  .when { color: var(--gray-11); font-size: var(--step--1); }
+  .what .line { font-size: var(--step-0); }
+  .what .desc { color: var(--gray-11); margin-top: 4px; }
 
-  .links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px 16px;
-    padding: 0;
-    margin: 12px 0 0;
-    list-style: none;
-  }
-  .links a {
-    text-decoration: underline;
-    color: var(--gray-12);
-  }
-  .links a:hover {
-    opacity: 0.9;
-  }
+  /* 旧的文字链接样式（如果将来不用可删除） */
+  .links { display: flex; flex-wrap: wrap; gap: 12px 16px; padding: 0; margin: 12px 0 0; list-style: none; }
+  .links a { text-decoration: underline; color: var(--gray-12); }
+  .links a:hover { opacity: .9; }
 </style>

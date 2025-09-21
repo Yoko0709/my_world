@@ -1,7 +1,23 @@
+// src/content.config.ts
 import { defineCollection, z } from "astro:content";
 import { glob } from "astro/loaders";
 
-/* pages */
+/* ---------- 共用子 schema ---------- */
+const linkItem = z.object({
+  href: z.string().url().or(z.string().startsWith("mailto:")),
+  label: z.string(),
+  icon: z
+    .enum(["github", "researchgate", "mail", "outlook", "linkedin", "instagram", "scholar"])
+    .optional(),
+  ariaLabel: z.string().optional(),
+});
+
+const skillItem = z.object({
+  name: z.string(),
+  tip: z.string().optional(),
+});
+
+/* ---------- pages (md/mdx) ---------- */
 const pages = defineCollection({
   loader: glob({ pattern: "**/[^_]*.{md,mdx}", base: "./src/content/pages" }),
   schema: ({ image }) =>
@@ -16,7 +32,7 @@ const pages = defineCollection({
     }),
 });
 
-/* work */
+/* ---------- work (md/mdx) ---------- */
 const work = defineCollection({
   loader: glob({ pattern: "**/[^_]*.{md,mdx}", base: "./src/content/work" }),
   schema: ({ image }) =>
@@ -29,9 +45,13 @@ const work = defineCollection({
     }),
 });
 
-/* papers (yml) */
+/* ---------- papers (yml) ---------- */
+/* 若使用 yml/yaml，请在 astro.config.mjs 启用 @astrojs/yaml：
+   import yaml from "@astrojs/yaml";
+   export default defineConfig({ integrations: [yaml()] })
+*/
 const papers = defineCollection({
-  loader: glob({ pattern: "**/[^_]*.yml", base: "./src/content/papers" }),
+  loader: glob({ pattern: "**/[^_]*.y{a,}ml", base: "./src/content/papers" }),
   schema: () =>
     z.object({
       title: z.string(),
@@ -42,9 +62,9 @@ const papers = defineCollection({
     }),
 });
 
-/* projects (yml) */
+/* ---------- projects (yml) ---------- */
 const projects = defineCollection({
-  loader: glob({ pattern: "**/[^_]*.yml", base: "./src/content/projects" }),
+  loader: glob({ pattern: "**/[^_]*.y{a,}ml", base: "./src/content/projects" }),
   schema: () =>
     z.object({
       title: z.string(),
@@ -55,15 +75,21 @@ const projects = defineCollection({
     }),
 });
 
-/* now */
+/* ---------- now (md/mdx) ---------- */
 const now = defineCollection({
   loader: glob({ pattern: "**/[^_]*.{md,mdx}", base: "./src/content/now" }),
-  schema: () => z.object({ date: z.date() }),
+  schema: () =>
+    z.object({
+      title: z.string().optional(),
+      locale: z.enum(["en", "zh"]).optional(),
+      draft: z.boolean().default(false).optional(),
+      date: z.date().optional(),
+    }),
 });
 
-/* now_* (yml) */
+/* ---------- now_* (yml) ---------- */
 const now_books = defineCollection({
-  loader: glob({ pattern: "**/[^_]*.yml", base: "./src/content/now/books" }),
+  loader: glob({ pattern: "**/[^_]*.y{a,}ml", base: "./src/content/now/books" }),
   schema: ({ image }) =>
     z.object({
       title: z.string(),
@@ -75,8 +101,9 @@ const now_books = defineCollection({
       draft: z.boolean().default(false),
     }),
 });
+
 const now_movies = defineCollection({
-  loader: glob({ pattern: "**/[^_]*.yml", base: "./src/content/now/movies" }),
+  loader: glob({ pattern: "**/[^_]*.y{a,}ml", base: "./src/content/now/movies" }),
   schema: ({ image }) =>
     z.object({
       title: z.string(),
@@ -88,8 +115,9 @@ const now_movies = defineCollection({
       draft: z.boolean().default(false),
     }),
 });
+
 const now_music = defineCollection({
-  loader: glob({ pattern: "**/[^_]*.yml", base: "./src/content/now/music" }),
+  loader: glob({ pattern: "**/[^_]*.y{a,}ml", base: "./src/content/now/music" }),
   schema: ({ image }) =>
     z.object({
       title: z.string(),
@@ -101,8 +129,9 @@ const now_music = defineCollection({
       draft: z.boolean().default(false),
     }),
 });
+
 const now_feed = defineCollection({
-  loader: glob({ pattern: "**/[^_]*.yml", base: "./src/content/now/feed" }),
+  loader: glob({ pattern: "**/[^_]*.y{a,}ml", base: "./src/content/now/feed" }),
   schema: () =>
     z.object({
       date: z.date(),
@@ -114,7 +143,7 @@ const now_feed = defineCollection({
     }),
 });
 
-/* about (md/mdx, 与其它集合统一用 glob loader) */
+/* ---------- about (md/mdx) ---------- */
 const about = defineCollection({
   loader: glob({ pattern: "**/[^_]*.{md,mdx}", base: "./src/content/about" }),
   schema: ({ image }) =>
@@ -123,34 +152,33 @@ const about = defineCollection({
       draft: z.boolean().default(false),
 
       title: z.string().default("ABOUT ME"),
-      description: z
-        .string()
-        .default("Who I am, what I do, and where to find me."),
-      intro: z.string(),
+      description: z.string().default("Who I am, what I do, and where to find me."),
+      intro: z.string().optional(),
 
-      // 头像：若你更偏向字符串路径，改成 z.string().min(1).optional()
-      avatar: z.union([image(), z.string()]),
+      avatar: z.union([image(), z.string()]).optional(),
+      avatarAlt: z.string().optional(),
 
-      skills: z.record(z.array(z.string())),
-      experience: z.array(
-        z.object({
-          when: z.string(),
-          where: z.string(),
-          role: z.string(),
-          what: z.string(),
-        })
-      ),
-      links: z
+      // 关键：技能分组 -> 每组是 {name, tip?}[]
+      skills: z.record(z.array(skillItem)).optional(),
+
+      experience: z
         .array(
           z.object({
-            label: z.string(),
-            href: z.string().url().or(z.string().startsWith("mailto:")),
-          })
+            when: z.string(),
+            where: z.string(),
+            role: z.string().optional(),
+            what: z.string().optional(),
+          }),
         )
-        .default([]),
+        .optional(),
+
+      links: z.array(linkItem).optional(),
+
+      updated: z.string().optional(),
     }),
 });
 
+/* ---------- 统一导出（只导出一次） ---------- */
 export const collections = {
   pages,
   work,
@@ -163,4 +191,3 @@ export const collections = {
   now_feed,
   about,
 };
-
