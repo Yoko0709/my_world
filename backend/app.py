@@ -5,7 +5,7 @@ import threading
 from flask import Flask, request, jsonify
 
 # 从本地模块导入
-from ai_agent.rag_pipeline1 import (
+from ai_agent.rag_pipeline2 import (
     load_docs, create_index, load_index, get_qa_chain, get_answer
 )
 
@@ -50,20 +50,34 @@ def create_app():
             app.qa_chain = get_qa_chain(vectorstore)
             return app.qa_chain
 
+
     @app.get("/health")
     def health():
         return {"ok": True, "docs_dir": app.docs_dir, "index_dir": app.index_dir}, 200
 
     @app.post("/ask")
+
+
+
     def ask():
         try:
             data = request.get_json(silent=True) or {}
             question = (data.get("question") or "").strip()
             qa_chain = ensure_qa_chain()
-            if question:
-                answer = get_answer(qa_chain, question)
-                return jsonify({"answer": answer})
-            return jsonify({"answer": f"你问了: {data}"}), 200
+
+            if not question:
+                return jsonify({"answer": f"你问了: {data}"}), 200
+
+            result = get_answer(qa_chain, question)
+
+            # --- 改动关键：支持 tuple 返回 ---
+            if isinstance(result, tuple):
+                answer, _ = result
+            else:
+                answer = result
+
+            return jsonify({"answer": answer}), 200
+
         except Exception as e:
             import traceback
             traceback.print_exc()
